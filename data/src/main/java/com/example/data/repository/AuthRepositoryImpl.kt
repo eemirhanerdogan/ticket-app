@@ -8,12 +8,13 @@ import com.example.data.dto.CredentialsDto
 import com.example.data.remote.AuthApi
 import com.example.data.util.runCatchingApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class AuthRepositoryImpl(
     private val authApi: AuthApi
 ) : AuthRepository {
     override val isLoggedIn: Flow<Boolean>
-        get() = TODO("Not yet implemented")
+        get() = flowOf(false)
 
     override suspend fun login(
         email: String,
@@ -36,10 +37,10 @@ class AuthRepositoryImpl(
         email: String,
         password: String
     ): Result<AuthSession> {
-        TODO("Not yet implemented")
+        return Result.failure(Exception("Register is not implemented yet"))
     }
 
     override suspend fun logout(): Result<Unit> {
-        TODO("Not yet implemented")
+        return Result.success(Unit)
     }
 }
