@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ticketapp.screen.LoginScreen
+import com.example.ticketapp.screen.RegisterScreen
 
 @Composable
 fun AppNavHost(
@@ -24,7 +25,18 @@ fun AppNavHost(
             )
         }
         composable<Register> {
-            Text("Register Screen")
+            RegisterScreen(
+                onRegisterSuccess = {
+                    navController.navigate(Login) {
+                        popUpTo(Register) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Login) {
+                        popUpTo(Register) { inclusive = true }
+                    }
+                }
+            )
         }
         composable<Home> {
             Text("Home Screen")
