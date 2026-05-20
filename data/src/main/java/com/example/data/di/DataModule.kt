@@ -1,11 +1,16 @@
 package com.example.data.di
 
 import com.example.core.domain.AuthRepository
+import com.example.core.domain.EventRepository
+import com.example.core.domain.TicketRepository
 import com.example.data.local.TokenStore
 import com.example.data.network.AuthInterceptor
 import com.example.data.network.TokenAuthenticator
 import com.example.data.remote.AuthApi
+import com.example.data.remote.TicketApi
 import com.example.data.repository.AuthRepositoryImpl
+import com.example.data.repository.EventRepositoryImpl
+import com.example.data.repository.TicketRepositoryImpl
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -83,11 +88,20 @@ val dataModule = module {
     }
 
     single { get<Retrofit>().create(AuthApi::class.java) }
+    single { get<Retrofit>().create(TicketApi::class.java) }
 
     single<AuthRepository> {
         AuthRepositoryImpl(
             authApi = get(),
             tokenStore = get()
         )
+    }
+
+    single<EventRepository> {
+        EventRepositoryImpl(ticketApi = get())
+    }
+
+    single<TicketRepository> {
+        TicketRepositoryImpl(ticketApi = get())
     }
 }
