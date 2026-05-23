@@ -2,32 +2,31 @@ package com.example.ticketapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.core.domain.Event
-import com.example.core.domain.EventRepository
 import com.example.core.domain.Ticket
 import com.example.core.domain.TicketRepository
+import com.example.core.domain.event.Event
+import com.example.core.domain.event.EventRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class HomeUiState<T>(
-    val data: List<T> = emptyList(),
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null
+data class HomeUiState(
+    val isEventsLoading: Boolean = false,
+    val events: List<Event> = emptyList(),
+    val eventsError: String? = null,
+    val isTicketsLoading: Boolean = false,
+    val tickets: List<Ticket> = emptyList(),
+    val ticketsError: String? = null
 )
 
 class HomeViewModel(
     private val eventRepository: EventRepository,
     private val ticketRepository: TicketRepository
 ) : ViewModel() {
-
-    private val _eventsState = MutableStateFlow(HomeUiState<Event>())
-    val eventsState: StateFlow<HomeUiState<Event>> = _eventsState.asStateFlow()
-
-    private val _ticketsState = MutableStateFlow(HomeUiState<Ticket>())
-    val ticketsState: StateFlow<HomeUiState<Ticket>> = _ticketsState.asStateFlow()
+    private val _state = MutableStateFlow(HomeUiState())
+    val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
     init {
         loadEvents()
@@ -35,33 +34,46 @@ class HomeViewModel(
     }
 
     fun loadEvents() {
-        _eventsState.update { it.copy(isLoading = true, errorMessage = null) }
+        if (_state.value.isEventsLoading) return
+
+        _state.update { it.copy(isEventsLoading = true, eventsError = null) }
+
         viewModelScope.launch {
-            eventRepository.getEvents()
-                .onSuccess { events ->
-                    _eventsState.update { it.copy(data = events, isLoading = false) }
+            eventRepository.getEvents().fold(
+                onSuccess = { list ->
+                    _state.update { it.copy(events = list, isEventsLoading = false, eventsError = null) }
+                },
+                onFailure = { e ->
+                    _state.update {
+                        it.copy(
+                            isEventsLoading = false,
+                            eventsError = e.message ?: "Etkinlikler yüklenemedi."
+                        )
+                    }
                 }
-                .onFailure { error ->
-                    _eventsState.update { it.copy(isLoading = false, errorMessage = error.message) }
-                }
+            )
         }
     }
 
     fun loadTickets() {
-        _ticketsState.update { it.copy(isLoading = true, errorMessage = null) }
+        if (_state.value.isTicketsLoading) return
+
+        _state.update { it.copy(isTicketsLoading = true, ticketsError = null) }
+
         viewModelScope.launch {
-            ticketRepository.getMyTickets()
-                .onSuccess { tickets ->
-                    _ticketsState.update { it.copy(data = tickets, isLoading = false) }
-                }
-                .onFailure { error ->
-                    val message = if (error.message?.contains("401") == true) {
-                        "Oturum süresi doldu, tekrar giriş yapın"
-                    } else {
-                        error.message
+            ticketRepository.getMyTickets().fold(
+                onSuccess = { list ->
+                    _state.update { it.copy(tickets = list, isTicketsLoading = false, ticketsError = null) }
+                },
+                onFailure = { e ->
+                    _state.update {
+                        it.copy(
+                            isTicketsLoading = false,
+                            ticketsError = e.message ?: "Biletler yüklenemedi."
+                        )
                     }
-                    _ticketsState.update { it.copy(isLoading = false, errorMessage = message) }
                 }
+            )
         }
     }
 }

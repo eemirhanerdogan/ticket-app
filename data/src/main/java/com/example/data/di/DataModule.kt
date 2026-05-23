@@ -1,12 +1,13 @@
 package com.example.data.di
 
-import com.example.core.domain.AuthRepository
-import com.example.core.domain.EventRepository
+import com.example.core.domain.auth.AuthRepository
+import com.example.core.domain.event.EventRepository
 import com.example.core.domain.TicketRepository
 import com.example.data.local.TokenStore
 import com.example.data.network.AuthInterceptor
 import com.example.data.network.TokenAuthenticator
 import com.example.data.remote.AuthApi
+import com.example.data.remote.EventApi
 import com.example.data.remote.TicketApi
 import com.example.data.repository.AuthRepositoryImpl
 import com.example.data.repository.EventRepositoryImpl
@@ -44,7 +45,6 @@ val dataModule = module {
 
     single { AuthInterceptor(tokenStore = get()) }
 
-    // Refresh akışı için özel client ve api (Interceptor ve Authenticator içermez, sonsuz döngüyü önlemek için)
     single(REFRESH_CLIENT) {
         OkHttpClient.Builder()
             .addInterceptor(get<HttpLoggingInterceptor>())
@@ -70,7 +70,6 @@ val dataModule = module {
         )
     }
 
-    // Ana HTTP client
     single {
         OkHttpClient.Builder()
             .addInterceptor(get<AuthInterceptor>())
@@ -88,6 +87,7 @@ val dataModule = module {
     }
 
     single { get<Retrofit>().create(AuthApi::class.java) }
+    single { get<Retrofit>().create(EventApi::class.java) }
     single { get<Retrofit>().create(TicketApi::class.java) }
 
     single<AuthRepository> {
@@ -98,7 +98,7 @@ val dataModule = module {
     }
 
     single<EventRepository> {
-        EventRepositoryImpl(ticketApi = get())
+        EventRepositoryImpl(eventApi = get())
     }
 
     single<TicketRepository> {

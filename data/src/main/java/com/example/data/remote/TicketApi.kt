@@ -1,7 +1,7 @@
 package com.example.data.remote
 
-import com.example.data.dto.EventDto
 import com.example.data.dto.TicketDto
+import com.example.data.dto.event.EventDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query

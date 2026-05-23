@@ -2,7 +2,7 @@ package com.example.data.network
 
 import com.example.data.local.TokenStore
 import com.example.data.remote.AuthApi
-import com.example.data.dto.RefreshRequestDto
+import com.example.data.dto.auth.RefreshRequestDto
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response

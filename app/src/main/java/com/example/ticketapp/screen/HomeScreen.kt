@@ -1,104 +1,101 @@
 package com.example.ticketapp.screen
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.core.domain.Event
 import com.example.core.domain.Ticket
-import com.example.ticketapp.viewmodel.HomeUiState
+import com.example.core.domain.event.Event
 import com.example.ticketapp.viewmodel.HomeViewModel
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = koinViewModel(),
-    onLogout: suspend () -> Unit
+    onTicketClick: (String) -> Unit,
+    viewModel: HomeViewModel = koinViewModel()
 ) {
-    val scope = rememberCoroutineScope()
-    val eventsState by viewModel.eventsState.collectAsStateWithLifecycle()
-    val ticketsState by viewModel.ticketsState.collectAsStateWithLifecycle()
-    
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Etkinlikler", "Biletlerim")
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Ana Sayfa") },
-                actions = {
-                    IconButton(onClick = {
-                        if (selectedTabIndex == 0) viewModel.loadEvents() else viewModel.loadTickets()
-                    }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Yenile")
-                    }
-                    IconButton(onClick = {
-                        scope.launch {
-                            onLogout()
-                        }
-                    }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = "Çıkış Yap",
-                            tint = Color.Red
-                        )
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Column(
+    Surface(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(vertical = 24.dp)
         ) {
-            TabRow(selectedTabIndex = selectedTabIndex) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = { Text(title) }
+            item {
+                Text(
+                    text = "Ana Sayfa",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+
+            item {
+                Text(
+                    text = "Etkinlikler",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+                Spacer(Modifier.height(8.dp))
+                EventsRow(
+                    isLoading = state.isEventsLoading,
+                    error = state.eventsError,
+                    events = state.events
+                )
+                Spacer(Modifier.height(24.dp))
+            }
+
+            item {
+                Text(
+                    text = "Biletlerim",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+
+            if (state.isTicketsLoading) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else if (state.ticketsError != null) {
+                item {
+                    Text(
+                        text = state.ticketsError!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
                 }
-            }
-
-            when (selectedTabIndex) {
-                0 -> EventsSection(eventsState, onRetry = viewModel::loadEvents)
-                1 -> TicketsSection(ticketsState, onRetry = viewModel::loadTickets)
-            }
-        }
-    }
-}
-
-@Composable
-fun EventsSection(state: HomeUiState<Event>, onRetry: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (state.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        } else if (state.errorMessage != null) {
-            ErrorView(message = state.errorMessage, onRetry = onRetry)
-        } else if (state.data.isEmpty()) {
-            EmptyView(message = "Henüz etkinlik bulunamadı")
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(state.data) { event ->
-                    EventCard(event)
+            } else if (state.tickets.isEmpty()) {
+                item {
+                    Text(
+                        text = "Henüz biletiniz yok.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                }
+            } else {
+                items(state.tickets) { ticket ->
+                    TicketCard(ticket = ticket, onClick = { onTicketClick(ticket.id) })
                 }
             }
         }
@@ -106,22 +103,49 @@ fun EventsSection(state: HomeUiState<Event>, onRetry: () -> Unit) {
 }
 
 @Composable
-fun TicketsSection(state: HomeUiState<Ticket>, onRetry: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (state.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        } else if (state.errorMessage != null) {
-            ErrorView(message = state.errorMessage, onRetry = onRetry)
-        } else if (state.data.isEmpty()) {
-            EmptyView(message = "Henüz biletiniz yok")
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+private fun EventsRow(
+    isLoading: Boolean,
+    error: String?,
+    events: List<Event>
+) {
+    when {
+        isLoading -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
             ) {
-                items(state.data) { ticket ->
-                    TicketCard(ticket)
+                CircularProgressIndicator()
+            }
+        }
+        error != null -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
+        events.isEmpty() -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Şimdilik hiçbir etkinlik yok.", style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+        else -> {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(items = events, key = { it.id }) { event ->
+                    EventSmallCard(event)
                 }
             }
         }
@@ -129,61 +153,87 @@ fun TicketsSection(state: HomeUiState<Ticket>, onRetry: () -> Unit) {
 }
 
 @Composable
-fun EventCard(event: Event) {
+private fun EventSmallCard(event: Event) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .width(200.dp)
+            .height(180.dp),
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = event.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Tarih: ${event.date}", style = MaterialTheme.typography.bodyMedium)
-            Text(text = "Konum: ${event.location}", style = MaterialTheme.typography.bodyMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = "${event.price} TL", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-                Text(text = "Kalan: ${event.availableTickets}", style = MaterialTheme.typography.bodySmall)
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = event.name.take(1).uppercase(),
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text(
+                    text = event.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+                Text(
+                    text = event.venue,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray,
+                    maxLines = 1
+                )
             }
         }
     }
 }
 
 @Composable
-fun TicketCard(ticket: Ticket) {
+private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = ticket.event.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(text = "Tarih: ${ticket.event.date}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "Konum: ${ticket.event.location}", style = MaterialTheme.typography.bodySmall)
-            if (ticket.purchaseDate != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Satın Alma: ${ticket.purchaseDate}", style = MaterialTheme.typography.labelSmall)
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Bilet ID: ${ticket.id.take(8)}...",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(text = "Durum: ${ticket.status}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "QR: ${ticket.qrCode.take(12)}...", style = MaterialTheme.typography.bodySmall)
+            }
+            
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "Tür ID",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
+                )
+                Text(
+                    text = ticket.ticketTypeId.take(6),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
-    }
-}
-
-@Composable
-fun ErrorView(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRetry) {
-            Text("Tekrar Dene")
-        }
-    }
-}
-
-@Composable
-fun EmptyView(message: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = message, style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
     }
 }

@@ -1,10 +1,10 @@
 package com.example.data.repository
 
-import com.example.core.domain.AuthRepository
-import com.example.core.domain.AuthSession
-import com.example.core.domain.User
-import com.example.core.domain.UserRole
-import com.example.data.dto.CredentialsDto
+import com.example.core.domain.auth.AuthRepository
+import com.example.core.domain.auth.AuthSession
+import com.example.core.domain.auth.User
+import com.example.core.domain.auth.UserRole
+import com.example.data.dto.auth.CredentialsDto
 import com.example.data.local.TokenStore
 import com.example.data.remote.AuthApi
 import com.example.data.util.runCatchingApi

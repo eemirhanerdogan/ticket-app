@@ -12,10 +12,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.core.domain.AuthRepository
+import androidx.navigation.toRoute
+import com.example.core.domain.auth.AuthRepository
 import com.example.ticketapp.screen.HomeScreen
 import com.example.ticketapp.screen.LoginScreen
 import com.example.ticketapp.screen.RegisterScreen
+import com.example.ticketapp.screen.TicketDetailScreen
 import org.koin.compose.koinInject
 
 @Composable
@@ -27,7 +29,7 @@ fun AppNavHost(
 
     when (isLoggedIn) {
         null -> SplashScreen()
-        true -> AuthedNavHost(navController, authRepository)
+        true -> AuthedNavHost(navController)
         false -> UnAuthedNavHost(navController)
     }
 }
@@ -40,13 +42,20 @@ private fun SplashScreen() {
 }
 
 @Composable
-private fun AuthedNavHost(navController: NavHostController, authRepository: AuthRepository) {
+private fun AuthedNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Home) {
         composable<Home> {
             HomeScreen(
-                onLogout = {
-                    authRepository.logout()
+                onTicketClick = { ticketId ->
+                    navController.navigate(TicketDetail(ticketId))
                 }
+            )
+        }
+        composable<TicketDetail> { backStackEntry ->
+            val route = backStackEntry.toRoute<TicketDetail>()
+            TicketDetailScreen(
+                ticketId = route.ticketId,
+                onBackClick = { navController.popBackStack() }
             )
         }
     }

@@ -2,7 +2,7 @@ package com.example.ticketapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.core.domain.AuthRepository
+import com.example.core.domain.auth.AuthRepository
 import com.example.data.network.ApiException
 import com.example.data.network.NetworkException
 import kotlinx.coroutines.flow.MutableStateFlow

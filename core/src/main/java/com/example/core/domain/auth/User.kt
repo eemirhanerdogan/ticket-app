@@ -1,4 +1,4 @@
-package com.example.core.domain
+package com.example.core.domain.auth
 
 data class User(
     val id: String,
