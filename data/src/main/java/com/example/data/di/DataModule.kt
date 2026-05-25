@@ -3,15 +3,18 @@ package com.example.data.di
 import com.example.core.domain.auth.AuthRepository
 import com.example.core.domain.event.EventRepository
 import com.example.core.domain.TicketRepository
+import com.example.core.domain.purchase.PurchaseRepository
 import com.example.data.local.TokenStore
 import com.example.data.network.AuthInterceptor
 import com.example.data.network.TokenAuthenticator
 import com.example.data.remote.AuthApi
 import com.example.data.remote.EventApi
 import com.example.data.remote.TicketApi
+import com.example.data.remote.PurchaseApi
 import com.example.data.repository.AuthRepositoryImpl
 import com.example.data.repository.EventRepositoryImpl
 import com.example.data.repository.TicketRepositoryImpl
+import com.example.data.repository.PurchaseRepositoryImpl
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -89,6 +92,7 @@ val dataModule = module {
     single { get<Retrofit>().create(AuthApi::class.java) }
     single { get<Retrofit>().create(EventApi::class.java) }
     single { get<Retrofit>().create(TicketApi::class.java) }
+    single { get<Retrofit>().create(PurchaseApi::class.java) }
 
     single<AuthRepository> {
         AuthRepositoryImpl(
@@ -103,5 +107,9 @@ val dataModule = module {
 
     single<TicketRepository> {
         TicketRepositoryImpl(ticketApi = get())
+    }
+
+    single<PurchaseRepository> {
+        PurchaseRepositoryImpl(purchaseApi = get())
     }
 }

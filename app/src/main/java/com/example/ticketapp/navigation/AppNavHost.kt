@@ -14,8 +14,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.core.domain.auth.AuthRepository
+import com.example.ticketapp.screen.EventDetailScreen
 import com.example.ticketapp.screen.HomeScreen
 import com.example.ticketapp.screen.LoginScreen
+import com.example.ticketapp.screen.MyTicketsScreen
 import com.example.ticketapp.screen.RegisterScreen
 import com.example.ticketapp.screen.TicketDetailScreen
 import org.koin.compose.koinInject
@@ -48,6 +50,12 @@ private fun AuthedNavHost(navController: NavHostController) {
             HomeScreen(
                 onTicketClick = { ticketId ->
                     navController.navigate(TicketDetail(ticketId))
+                },
+                onEventClick = { eventId ->
+                    navController.navigate(EventDetail(eventId))
+                },
+                onMyTicketsClick = {
+                    navController.navigate(MyTickets)
                 }
             )
         }
@@ -56,6 +64,27 @@ private fun AuthedNavHost(navController: NavHostController) {
             TicketDetailScreen(
                 ticketId = route.ticketId,
                 onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable<EventDetail> { backStackEntry ->
+            val route = backStackEntry.toRoute<EventDetail>()
+            EventDetailScreen(
+                eventId = route.id,
+                onBackClick = { navController.popBackStack() },
+                onPurchasePaid = {
+                    navController.navigate(MyTickets) {
+                        popUpTo(Home)
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        composable<MyTickets> {
+            MyTicketsScreen(
+                onBackClick = { navController.popBackStack() },
+                onTicketClick = { ticketId ->
+                    navController.navigate(TicketDetail(ticketId))
+                }
             )
         }
     }

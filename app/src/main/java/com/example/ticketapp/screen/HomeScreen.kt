@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,60 +16,88 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.domain.Ticket
 import com.example.core.domain.event.Event
+import com.example.ticketapp.R
 import com.example.ticketapp.viewmodel.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onTicketClick: (String) -> Unit,
+    onEventClick: (String) -> Unit,
+    onMyTicketsClick: () -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.app_name)) },
+                actions = {
+                    IconButton(onClick = viewModel::logout) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = stringResource(R.string.logout)
+                        )
+                    }
+                }
+            )
+        }
+    ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 24.dp)
+                .padding(padding)
+                .padding(vertical = 16.dp)
         ) {
             item {
-                Text(
-                    text = "Ana Sayfa",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-                Spacer(Modifier.height(16.dp))
-            }
-
-            item {
-                Text(
-                    text = "Etkinlikler",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Etkinlikler",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Spacer(Modifier.height(8.dp))
                 EventsRow(
                     isLoading = state.isEventsLoading,
                     error = state.eventsError,
-                    events = state.events
+                    events = state.events,
+                    onEventClick = onEventClick
                 )
                 Spacer(Modifier.height(24.dp))
             }
 
             item {
-                Text(
-                    text = "Biletlerim",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.my_tickets),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    TextButton(onClick = onMyTicketsClick) {
+                        Text("Tümünü Gör")
+                    }
+                }
                 Spacer(Modifier.height(8.dp))
             }
 
@@ -88,13 +118,13 @@ fun HomeScreen(
             } else if (state.tickets.isEmpty()) {
                 item {
                     Text(
-                        text = "Henüz biletiniz yok.",
+                        text = stringResource(R.string.no_tickets_yet),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(horizontal = 24.dp)
                     )
                 }
             } else {
-                items(state.tickets) { ticket ->
+                items(state.tickets.take(3)) { ticket ->
                     TicketCard(ticket = ticket, onClick = { onTicketClick(ticket.id) })
                 }
             }
@@ -106,7 +136,8 @@ fun HomeScreen(
 private fun EventsRow(
     isLoading: Boolean,
     error: String?,
-    events: List<Event>
+    events: List<Event>,
+    onEventClick: (String) -> Unit
 ) {
     when {
         isLoading -> {
@@ -145,7 +176,7 @@ private fun EventsRow(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(items = events, key = { it.id }) { event ->
-                    EventSmallCard(event)
+                    EventSmallCard(event = event, onClick = { onEventClick(event.id) })
                 }
             }
         }
@@ -153,11 +184,12 @@ private fun EventsRow(
 }
 
 @Composable
-private fun EventSmallCard(event: Event) {
+private fun EventSmallCard(event: Event, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .width(200.dp)
-            .height(180.dp),
+            .height(180.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -214,22 +246,21 @@ private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Bilet ID: ${ticket.id.take(8)}...",
+                    text = ticket.eventName ?: "Bilinmeyen Etkinlik",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(text = "Durum: ${ticket.status}", style = MaterialTheme.typography.bodySmall)
-                Text(text = "QR: ${ticket.qrCode.take(12)}...", style = MaterialTheme.typography.bodySmall)
             }
             
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "Tür ID",
+                    text = "Bilet Türü",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray
                 )
                 Text(
-                    text = ticket.ticketTypeId.take(6),
+                    text = ticket.ticketTypeName ?: "-",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )

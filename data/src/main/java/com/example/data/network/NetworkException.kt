@@ -1,5 +1,7 @@
 package com.example.data.network
 
+import com.example.data.dto.ErrorResponseDto
+
 // Bağlantı kopuk, timeout, dns çözümleme
 class NetworkException(cause: Throwable) : RuntimeException("Network Error", cause)
 
@@ -7,5 +9,6 @@ class NetworkException(cause: Throwable) : RuntimeException("Network Error", cau
 class ApiException(
     val code: Int,
     val errorMessage: String?,
+    val errorBody: ErrorResponseDto? = null,
     cause: Throwable? = null
 ) : RuntimeException("HTTP $code: $errorMessage", cause)

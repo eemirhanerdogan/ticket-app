@@ -3,8 +3,7 @@ package com.example.ticketapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.domain.auth.AuthRepository
-import com.example.data.network.ApiException
-import com.example.data.network.NetworkException
+import com.example.ticketapp.util.toUserMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +18,11 @@ data class RegisterUiState(
     val errorMessage: String? = null,
     val isSuccess: Boolean = false
 ) {
-    val canSubmit: Boolean get() = email.isNotBlank() && password.length >= 8 && password == confirmPassword && !isLoading
+    val canSubmit: Boolean get() = email.isNotBlank() && 
+            password.length >= 8 && 
+            password.length <= 128 &&
+            password == confirmPassword && 
+            !isLoading
 }
 
 class RegisterViewModel(
@@ -35,7 +38,22 @@ class RegisterViewModel(
 
     fun submit() {
         val current = _state.value
-        if (!current.canSubmit) return
+        
+        // Validation checks
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(current.email).matches()) {
+            _state.update { it.copy(errorMessage = "Geçersiz email formatı") }
+            return
+        }
+        
+        if (current.password.length < 8 || current.password.length > 128) {
+            _state.update { it.copy(errorMessage = "Şifre 8-128 karakter arasında olmalıdır") }
+            return
+        }
+
+        if (current.password != current.confirmPassword) {
+            _state.update { it.copy(errorMessage = "Şifreler eşleşmiyor") }
+            return
+        }
 
         _state.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -49,15 +67,4 @@ class RegisterViewModel(
                 }
         }
     }
-}
-
-internal fun Throwable.toUserMessage(): String = when (this) {
-    is ApiException -> when (code) {
-        401 -> "Yetkisiz işlem"
-        409 -> "Bu e-posta adresi zaten kullanımda"
-        in 500..599 -> "Sunucu şu anda cevap veremiyor"
-        else -> "Beklenmeyen bir hata oluştu"
-    }
-    is NetworkException -> "İnternet bağlantısı yok"
-    else -> message ?: "Bilinmeyen bir hata oluştu."
 }

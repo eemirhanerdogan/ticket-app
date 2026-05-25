@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.domain.Ticket
 import com.example.core.domain.TicketRepository
+import com.example.core.domain.auth.AuthRepository
 import com.example.core.domain.event.Event
 import com.example.core.domain.event.EventRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,8 @@ data class HomeUiState(
 
 class HomeViewModel(
     private val eventRepository: EventRepository,
-    private val ticketRepository: TicketRepository
+    private val ticketRepository: TicketRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
@@ -74,6 +76,12 @@ class HomeViewModel(
                     }
                 }
             )
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            authRepository.logout()
         }
     }
 }

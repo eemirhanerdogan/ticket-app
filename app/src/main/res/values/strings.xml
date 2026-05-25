@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">Ticket App</string>
+    <string name="my_tickets">Biletlerim</string>
+    <string name="no_tickets_yet">Henüz biletiniz yok.</string>
+    <string name="retry">Yenile</string>
+    <string name="logout">Çıkış Yap</string>
+    <string name="qr_code">QR Kod</string>
+    <string name="ticket_detail">Bilet Detayı</string>
+    <string name="unknown_event">Bilinmeyen Etkinlik</string>
+    <string name="unknown_ticket_type">Bilinmeyen Bilet Türü</string>
+    <string name="no_date_info">Tarih bilgisi yok</string>
+    <string name="no_location_info">Lokasyon bilgisi yok</string>
+    <string name="valid">GEÇERLİ</string>
+    <string name="invalid">GEÇERSİZ</string>
+    <string name="price">Fiyat</string>
+    <string name="status">Durum</string>
+    <string name="event_name">Etkinlik Adı</string>
+    <string name="ticket_type">Bilet Türü</string>
+    <string name="date_time">Tarih/Saat</string>
+    <string name="location">Lokasyon</string>
+    <string name="ticket_id">Bilet ID</string>
 </resources>

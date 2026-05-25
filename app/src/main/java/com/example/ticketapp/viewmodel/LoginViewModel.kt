@@ -3,6 +3,7 @@ package com.example.ticketapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.domain.auth.AuthRepository
+import com.example.ticketapp.util.toUserMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,7 +39,9 @@ class LoginViewModel(
         viewModelScope.launch {
             authRepository.login(current.email, current.password)
                 .onSuccess { _state.update { it.copy(isLoading = false, isLoggedIn = true) } }
-                .onFailure { error -> _state.update { it.copy(isLoading = false, errorMessage = error.message) } }
+                .onFailure { error -> 
+                    _state.update { it.copy(isLoading = false, errorMessage = error.toUserMessage()) } 
+                }
         }
     }
 }
