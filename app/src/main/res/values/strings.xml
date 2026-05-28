@@ -19,4 +19,9 @@
     <string name="date_time">Tarih/Saat</string>
     <string name="location">Lokasyon</string>
     <string name="ticket_id">Bilet ID</string>
+    <string name="my_purchases">Satın Alımlarım</string>
+    <string name="no_purchases_yet">Henüz satın alma işleminiz yok.</string>
+    <string name="continue_payment">Ödemeye devam et</string>
+    <string name="paid">Ödendi</string>
+    <string name="total">Toplam</string>
 </resources>

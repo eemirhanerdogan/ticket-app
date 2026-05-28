@@ -26,4 +26,8 @@ class PurchaseRepositoryImpl(
     override suspend fun getPurchase(id: String): Result<Purchase> = runCatchingApi {
         purchaseApi.getPurchase(id).toDomain()
     }
+
+    override suspend fun getMyPurchases(): Result<List<Purchase>> = runCatchingApi {
+        purchaseApi.getMyPurchases().map { it.toDomain() }
+    }
 }

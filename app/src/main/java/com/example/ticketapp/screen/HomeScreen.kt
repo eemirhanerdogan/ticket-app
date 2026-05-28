@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +33,7 @@ fun HomeScreen(
     onTicketClick: (String) -> Unit,
     onEventClick: (String) -> Unit,
     onMyTicketsClick: () -> Unit,
+    onMyPurchasesClick: () -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -41,6 +43,12 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
+                    IconButton(onClick = onMyPurchasesClick) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = stringResource(R.string.my_purchases)
+                        )
+                    }
                     IconButton(onClick = viewModel::logout) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,

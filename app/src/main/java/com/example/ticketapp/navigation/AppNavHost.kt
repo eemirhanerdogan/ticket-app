@@ -17,6 +17,7 @@ import com.example.core.domain.auth.AuthRepository
 import com.example.ticketapp.screen.EventDetailScreen
 import com.example.ticketapp.screen.HomeScreen
 import com.example.ticketapp.screen.LoginScreen
+import com.example.ticketapp.screen.MyPurchasesScreen
 import com.example.ticketapp.screen.MyTicketsScreen
 import com.example.ticketapp.screen.RegisterScreen
 import com.example.ticketapp.screen.TicketDetailScreen
@@ -56,6 +57,9 @@ private fun AuthedNavHost(navController: NavHostController) {
                 },
                 onMyTicketsClick = {
                     navController.navigate(MyTickets)
+                },
+                onMyPurchasesClick = {
+                    navController.navigate(MyPurchases)
                 }
             )
         }
@@ -84,6 +88,16 @@ private fun AuthedNavHost(navController: NavHostController) {
                 onBackClick = { navController.popBackStack() },
                 onTicketClick = { ticketId ->
                     navController.navigate(TicketDetail(ticketId))
+                }
+            )
+        }
+        composable<MyPurchases> {
+            MyPurchasesScreen(
+                onBackClick = { navController.popBackStack() },
+                onContinuePaymentSuccess = {
+                    navController.navigate(MyTickets) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
