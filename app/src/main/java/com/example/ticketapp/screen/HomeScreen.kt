@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.domain.Ticket
+import com.example.core.domain.auth.UserRole
 import com.example.core.domain.event.Event
 import com.example.ticketapp.R
 import com.example.ticketapp.viewmodel.HomeViewModel
@@ -34,6 +36,7 @@ fun HomeScreen(
     onEventClick: (String) -> Unit,
     onMyTicketsClick: () -> Unit,
     onMyPurchasesClick: () -> Unit,
+    onStaffCheckInClick: () -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -43,6 +46,14 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
+                    if (state.userRole == UserRole.STAFF) {
+                        IconButton(onClick = onStaffCheckInClick) {
+                            Icon(
+                                imageVector = Icons.Default.QrCodeScanner,
+                                contentDescription = stringResource(R.string.staff_checkin)
+                            )
+                        }
+                    }
                     IconButton(onClick = onMyPurchasesClick) {
                         Icon(
                             imageVector = Icons.Default.History,
@@ -66,19 +77,12 @@ fun HomeScreen(
                 .padding(vertical = 16.dp)
         ) {
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Etkinlikler",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    text = "Etkinlikler",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
                 Spacer(Modifier.height(8.dp))
                 EventsRow(
                     isLoading = state.isEventsLoading,

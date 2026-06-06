@@ -22,3 +22,6 @@ object MyTickets
 
 @Serializable
 object MyPurchases
+
+@Serializable
+object StaffCheckIn

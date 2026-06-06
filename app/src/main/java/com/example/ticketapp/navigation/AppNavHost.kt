@@ -20,6 +20,7 @@ import com.example.ticketapp.screen.LoginScreen
 import com.example.ticketapp.screen.MyPurchasesScreen
 import com.example.ticketapp.screen.MyTicketsScreen
 import com.example.ticketapp.screen.RegisterScreen
+import com.example.ticketapp.screen.StaffScreen
 import com.example.ticketapp.screen.TicketDetailScreen
 import org.koin.compose.koinInject
 
@@ -60,6 +61,9 @@ private fun AuthedNavHost(navController: NavHostController) {
                 },
                 onMyPurchasesClick = {
                     navController.navigate(MyPurchases)
+                },
+                onStaffCheckInClick = {
+                    navController.navigate(StaffCheckIn)
                 }
             )
         }
@@ -99,6 +103,11 @@ private fun AuthedNavHost(navController: NavHostController) {
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+        composable<StaffCheckIn> {
+            StaffScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
     }

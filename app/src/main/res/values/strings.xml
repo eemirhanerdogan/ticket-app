@@ -24,4 +24,12 @@
     <string name="continue_payment">Ödemeye devam et</string>
     <string name="paid">Ödendi</string>
     <string name="total">Toplam</string>
+
+    <string name="staff_checkin">Görevli Check-in</string>
+    <string name="scan_qr_code">QR Kodu Oku</string>
+    <string name="scan_prompt">QR kodu çerçeveye getirin</string>
+    <string name="camera_permission_required">Kamera izni gerekli</string>
+    <string name="qr_not_read">QR kod okunamadı</string>
+    <string name="checkin_success">Check-in başarılı</string>
+    <string name="checkin_failed">Check-in başarısız</string>
 </resources>

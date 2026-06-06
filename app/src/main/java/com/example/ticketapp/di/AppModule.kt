@@ -7,6 +7,7 @@ import com.example.ticketapp.viewmodel.TicketDetailViewModel
 import com.example.ticketapp.viewmodel.EventDetailViewModel
 import com.example.ticketapp.viewmodel.MyTicketsViewModel
 import com.example.ticketapp.viewmodel.MyPurchasesViewModel
+import com.example.ticketapp.viewmodel.StaffViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -19,4 +20,5 @@ val appModule = module {
     viewModel { EventDetailViewModel(get(), get()) }
     viewModel { MyTicketsViewModel(get()) }
     viewModel { MyPurchasesViewModel(get()) }
+    viewModel { StaffViewModel(get()) }
 }

@@ -74,4 +74,5 @@ dependencies {
 
     // QR Code
     implementation(libs.qrcode.kotlin)
+    implementation(libs.journeyapps.zxing)
 }
