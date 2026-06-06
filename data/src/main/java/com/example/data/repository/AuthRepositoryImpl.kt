@@ -18,8 +18,10 @@ class AuthRepositoryImpl(
     override val isLoggedIn: Flow<Boolean>
         get() = tokenStore.accessToken.map { it != null }
 
-    override val userRole: Flow<UserRole?>
-        get() = tokenStore.userRole.map { it?.let { role -> UserRole.fromApi(role) } }
+    override val userRole: Flow<UserRole>
+        get() = tokenStore.userRole.map { role ->
+            UserRole.fromApi(role)
+        }
 
     override suspend fun login(
         email: String,

@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.core.domain.auth.AuthRepository
+import com.example.core.domain.auth.UserRole
 import com.example.ticketapp.screen.EventDetailScreen
 import com.example.ticketapp.screen.HomeScreen
 import com.example.ticketapp.screen.LoginScreen
@@ -30,11 +31,19 @@ fun AppNavHost(
     authRepository: AuthRepository = koinInject()
 ) {
     val isLoggedIn by authRepository.isLoggedIn.collectAsStateWithLifecycle(initialValue = null)
+    val userRole by authRepository.userRole.collectAsStateWithLifecycle(initialValue = null)
 
-    when (isLoggedIn) {
-        null -> SplashScreen()
-        true -> AuthedNavHost(navController)
-        false -> UnAuthedNavHost(navController)
+    when {
+        isLoggedIn == null -> SplashScreen()
+        isLoggedIn == true -> {
+            // Wait for userRole to be loaded if logged in
+            if (userRole == null) {
+                SplashScreen()
+            } else {
+                AuthedNavHost(navController, userRole!!)
+            }
+        }
+        else -> UnAuthedNavHost(navController)
     }
 }
 
@@ -46,8 +55,13 @@ private fun SplashScreen() {
 }
 
 @Composable
-private fun AuthedNavHost(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Home) {
+private fun AuthedNavHost(
+    navController: NavHostController,
+    userRole: UserRole
+) {
+    val startDestination: Any = if (userRole == UserRole.STAFF) StaffCheckIn else Home
+
+    NavHost(navController = navController, startDestination = startDestination) {
         composable<Home> {
             HomeScreen(
                 onTicketClick = { ticketId ->
@@ -107,7 +121,17 @@ private fun AuthedNavHost(navController: NavHostController) {
         }
         composable<StaffCheckIn> {
             StaffScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = {
+                    if (navController.previousBackStackEntry != null) {
+                        navController.popBackStack()
+                    } else {
+                        // If StaffCheckIn is start destination, back button takes to Home
+                        navController.navigate(Home) {
+                            popUpTo(StaffCheckIn) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
             )
         }
     }
